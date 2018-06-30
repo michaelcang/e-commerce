@@ -192,8 +192,11 @@ new Vue({
             }
             this.clearInput();
           } else {
-            // this.warning = data;
-            // this.hasWarning = true;
+            swal({
+              title: "Warning!",
+              text: "Username / Password wrong!",
+              icon: "warning"
+            })
           }
         })
         .catch(err => {
@@ -210,11 +213,18 @@ new Vue({
         .then(({ data }) => {
           if (data.token) {
             this.isRegister = false;
-            alert("Successfully add new admin");
+            swal({
+              title: "Sucess!",
+              text: "Successfully add new admin",
+              icon: "success"
+            })
             this.clearInput();
           } else {
-            // this.warning = data;
-            // this.hasWarning = true;
+            swal({
+              title: "Warning!",
+              text: "All information must be filled",
+              icon: "warning"
+            })
           }
         })
         .catch(err => {
