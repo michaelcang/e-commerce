@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt"
+    crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display" rel="stylesheet">
+
+  <title>Furniture Store</title>
+</head>
+
+<body>
+  <div id="app">
+    <div v-if="showCart || showCheckout" class="overlay"></div>
+    <div id="navbar">
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+          aria-expanded="false">
+          Admin
+        </button>
+        <div class="dropdown-menu dropdown-menu-left" aria-labelledby="dropdownMenuButton">
+          <a v-if="!isAdmin" @click="openLogin()" class="dropdown-item" href="#">Login</a>
+          <a v-if="isAdmin" @click="openAddAdmin()" class="dropdown-item" href="#">Add Admin</a>
+          <a v-if="isAdmin" @click="logout(); isRegister = false; isAdd = false;" class="dropdown-item" href="#">Logout</a>
+        </div>
+      </div>
+      <ul class="nav justify-content-center">
+        <li class="nav-item">
+          <a @click="toHome()" class="nav-link active" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a @click="isContact = false; isAbout = true; isAdd = false" class="nav-link" href="#">About Us</a>
+        </li>
+        <li class="nav-item">
+          <a @click="isContact = true; isAbout = false; isAdd = false" class="nav-link" href="#">Contact Us</a>
+        </li>
+        <li v-if="isAdmin" class="nav-item">
+          <a @click="isContact = false; isAbout = false; isAdd = true" class="nav-link" href="#">Add Item</a>
+        </li>
+      </ul>
+    </div>
+
+    <header>Furniture Store
+      <br>
+      <small v-if="isAdmin">Welcome, {{user}}</small>
+    </header>
+
+    <div v-if="isAdd" class="card" style="width: 30rem;">
+      <div class="card-body">
+        <h5 class="card-title">Add Item</h5>
+        <br>
+        <div class="form-group">
+          <input v-model="itemName" type="text" class="form-control" placeholder="Enter Item Name">
+        </div>
+        <div class="form-group">
+          <input v-model="itemPrice" type="text" class="form-control" placeholder="Enter Item Price">
+        </div>
+        <div class="form-group">
+          <select v-model="itemCategory">
+            <option value="" selected disabled hidden>Choose Item Category</option>
+            <option value="table">Table</option>
+            <option value="chair">Chair</option>
+            <option value="upboard">Cupboard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <input name="image" ref="image" v-on:change="handleUploadImage" type="file" accept="image/*">
+        </div>
+        <br>
+        <i v-if="uploadWait" class="far fa-clock fa-3x"></i>
+        <button v-if="!uploadWait" @click="submitAddItem();" class="btn btn-outline-success" type="button" :disabled="!itemName || !itemPrice || !itemCategory || !image">AddItem</button>
+        <button v-if="!uploadWait" @click="isAdd = false;" class="btn btn-outline-dark" type="button">Cancel</button>
+      </div>
+    </div>
+
+    <div v-if="!isAbout && !isContact && !isAdd && isRegister" class="card" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">Add Admin</h5>
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input v-model="username" type="text" class="form-control" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input v-model="password" type="password" class="form-control" placeholder="Password">
+        </div>
+        <button @click="register" class="btn btn-outline-success" type="button" :disabled="!username">Register</button>
+        <button @click="isRegister = false;" class="btn btn-outline-dark" type="button">Cancel</button>
+      </div>
+    </div>
+
+    <div v-if="!isAbout && !isContact && !isAdd && isLogin" class="card" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">Login</h5>
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input v-model="username" type="text" class="form-control" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input v-model="password" type="password" class="form-control" placeholder="Password">
+        </div>
+        <button @click="login()" class="btn btn-outline-success" type="button" :disabled="!username">Login</button>
+        <button @click="isLogin = false" class="btn btn-outline-dark" type="button">Cancel</button>
+      </div>
+    </div>
+
+    <div v-if="isAbout" class="about">
+      <h3>About this Online Store</h3>
+      <p>This online store sells various kind of furniture</p>
+    </div>
+
+    <div v-if="isContact" class="contact">
+      <h3>How to Contact Us</h3>
+      <br>
+      <p>Email: furniture_store@mail.com</p>
+      <p>Phone: 0812-345-678</p>
+    </div>
+
+    <div v-if="!isAbout && !isContact && !isAdd && !isLogin && !isRegister" class="home">
+      <div class="container row">
+        <div id="nav-categories" class="offset-md-2">
+          <ul class="nav justify-content-center">
+            <li class="nav-item">
+              <a @click="getAllItems()" class="nav-link active" href="#">All</a>
+            </li>
+            <li class="nav-item">
+              <a @click="getCategory('table')" class="nav-link" href="#">Table</a>
+            </li>
+            <li class="nav-item">
+              <a @click="getCategory('chair')" class="nav-link" href="#">Chair</a>
+            </li>
+            <li class="nav-item">
+              <a @click="getCategory('cupboard')" class="nav-link" href="#">Cupboard</a>
+            </li>
+          </ul>
+        </div>
+        <div v-if="!isAdmin" class="cart offset-md-5">
+          <button v-on:click="showCart = !showCart; showCheckout = false; openModal()" type="button" class="btn btn-light" data-toggle="modal"
+            data-target="#cart">
+            Shopping Cart({{ totalAll }})
+          </button>
+        </div>
+      </div>
+
+      <div v-if="showCart" class="modal" id="cart">
+        <div class="modal-dialog">
+          <div class="modal-content">
+
+            <div class="modal-header">
+              <h4 class="modal-title">Shopping Cart</h4>
+              <button v-on:click="showCart = !showCart; closeModal()" type="button" class="close">&times;</button>
+            </div>
+
+            <div class="modal-body d-flex flex-column align-items-center">
+              <div v-for="(item, index) in getCart" class="modal-item-top row">
+                <img v-bind:src="item.imageUrl" alt="item.name">
+                <div class="item-info">
+                    <h5>{{ item.name }}</h5>
+                  <h6>{{ getPrice(item.price) }}</h6>
+                  <div class="btn-group" role="group" aria-label="Basic example">
+                    <button @click="removeFromCart(item.id, false)" type="button" class="btn btn-secondary btn-sm">
+                      <</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled>{{ item.total }}</button>
+                        <button @click="addToCart(item.id)" type="button" class="btn btn-secondary btn-sm">></button>
+                  </div>
+                </div>
+                <button @click="removeFromCart(item.id, true)" type="button" class="close ml-auto p-2 text-danger"><h2>&times;</h2></button>
+              </div>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+              <h5 id="total-item">Total: {{ totalCost }}</h5>
+              <div>
+                <button v-on:click="showCheckout = !showCheckout; showCart = !showCart; checkout()" type="button" class="btn btn-success"
+                  data-dismiss="modal" data-toggle="modal" data-target="#checkout">
+                  Checkout</button>
+                <button v-on:click="showCart = !showCart; closeModal()" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showCheckout" class="modal" id="checkout">
+        <div class="modal-dialog">
+          <div class="modal-content">
+
+            <div class="modal-header">
+              <h4 class="modal-title">Checkout</h4>
+              <button v-on:click="showCheckout = !showCheckout; closeModal()" type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+              <ul>
+                <li v-for="(item, index) in checkoutCart">
+                  <h5>{{ item.name }}: {{ item.total }}</h5>
+                </li>
+              </ul>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+              <h5 id="checkout-price">Total: {{ checkoutTotal }}</h5>
+              <button v-on:click="showCheckout = !showCheckout; closeModal()" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="container" id="item-list">
+        <div v-if="!isAdmin" class="row user-list">
+          <div v-for="(item, index) in items" class="item col-md-6 d-flex flex-column justify-content-center">
+            <img v-bind:src="item.imageUrl" v-bind:alt="item.name" class="item-img">
+            <div v-on:click="addToCart(index)" class="item-name d-flex flex-column align-items-center justify-content-center">
+              <h4>{{ item.name }}</h4>
+              <h5>{{ getPrice(item.price) }}</h5>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="isAdmin" class="admin-table">
+          <table class="table table-hover table-striped">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Item Name</th>
+                <th scope="col" width="20%">Item Image</th>
+                <th scope="col">Item Price</th>
+                <th scope="col">Item Category</th>
+                <th scope="col">Configure</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in items">
+                <th scope="row">{{index + 1}}</th>
+                <td>{{ item.name }}</td>
+                <td>
+                  <img v-bind:src="item.imageUrl" v-bind:alt="item.name" class="item-img">
+                </td>
+                <td>{{ getPrice(item.price) }}</td>
+                <td>{{ item.category }}</td>
+                <td>
+                  <button @click="deleteItem(item._id)" class="btn btn-outline-danger btn-sm" type="button">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      <p>Designed By Michael</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="script/main.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+    crossorigin="anonymous"></script>
+  <script>
+  </script>
+</body>
+
+</html>
