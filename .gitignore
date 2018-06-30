@@ -61,3 +61,5 @@ typings/
 .next
 
 keyfile.json
+
+.DS_Store
