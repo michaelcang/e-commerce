@@ -128,11 +128,6 @@ new Vue({
             .catch(err => {
               console.log(err);
             });
-          swal("Item has been deleted", {
-            icon: "success"
-          });
-        } else {
-          swal("Item is not deleted");
         }
       });
     },
