@@ -17,8 +17,8 @@ new Vue({
     image: "",
     checkoutCart: "",
     checkoutTotal: "",
-    username: "",
-    password: "",
+    username: "admin",
+    password: "admin",
     user: "",
     uploadWait: false
   },
